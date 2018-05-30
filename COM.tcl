@@ -9,10 +9,10 @@ namespace eval ::SBG_Tools:: {
   }
 
 
-package provide SBGTools  $SBGTools::version
+package provide SBGTools 
 
 
-proc ::SBGTools::COM_din {molid out_nc} {
+proc COM_din {molid out_nc} {
 	set nf [molinfo $molid get numframes] 
 	set CA_selection [atomselect $molid "protein and name CA"]
 	set resid_list [ lsort -real -unique -increasing [$CA_selection get resid] ]
@@ -29,8 +29,16 @@ proc ::SBGTools::COM_din {molid out_nc} {
 			unset CA_sel
 			}
 	}
-	
+	set CA_all [atomselect $molid "name CA" frame 0]
+	# write topology
+	$CA_all writepdb ${out_nc}.pdb
+	unset CA_all
+	set CA_all [atomselect $molid "name CA"]
+	# write the complete trajectory to disk 
+	animate write dcd ${out_nc}.dcd beg 1 end [expr $nf-1] waitfor all sel $CA_all $molid
+	unset CA_all
 }
 
 
-::SBGTools::COM_din 0 salida.nc 
+COM_din 0 salida
+#quit 
